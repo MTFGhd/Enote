@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Clients;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ClientsRequest extends FormRequest
 {
@@ -11,7 +13,7 @@ class ClientsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +23,19 @@ class ClientsRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var Clients|null $client */
+        $client = $this->route('client');
+
         return [
-            //
+            'Nom' => ['required', 'string', 'min:2', 'max:255'],
+            'Email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('Clients', 'Email')->ignore($client?->IdClient, 'IdClient'),
+            ],
+            'Adresse' => ['required', 'string', 'min:10', 'max:255'],
         ];
     }
 }

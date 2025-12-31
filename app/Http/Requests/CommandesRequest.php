@@ -11,7 +11,7 @@ class CommandesRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,9 @@ class CommandesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'DateCmd' => ['required', 'date'],
+            'Montant' => ['required', 'numeric', 'gt:0'],
+            'IdClient' => ['required', 'string', 'exists:Clients,IdClient'],
         ];
     }
 }

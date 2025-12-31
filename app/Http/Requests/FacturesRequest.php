@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Factures;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class FacturesRequest extends FormRequest
 {
@@ -11,7 +13,7 @@ class FacturesRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +24,13 @@ class FacturesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'DateFact' => 'required|date',
+            'IdCde' => [
+                'required',
+                'integer',
+                'exists:Commandes,IdCde',
+                Rule::unique('Factures', 'IdCde')->ignore($this->route('facture')?->IdFact, 'IdFact'),
+            ],
         ];
     }
 }
