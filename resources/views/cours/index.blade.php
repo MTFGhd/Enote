@@ -31,6 +31,54 @@
                 @endif
             </div>
 
+            <!-- Filtres pour la Direction -->
+            @if($user->role === 'D')
+                <div class="glass rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden mb-6">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Filtres</h3>
+                            <a href="{{ route('cours.pdf.seances.form') }}"
+                                class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                PDF Séances
+                            </a>
+                        </div>
+                        <form method="GET" action="{{ route('cours.index') }}" class="flex gap-4 items-end">
+                            <div class="flex-1">
+                                <label for="valide" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Statut de validation
+                                </label>
+                                <select name="valide" id="valide" 
+                                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-primary-500 focus:ring-primary-500">
+                                    <option value="">Toutes les séances</option>
+                                    <option value="1" {{ request('valide') === '1' ? 'selected' : '' }}>Séances validées</option>
+                                    <option value="0" {{ request('valide') === '0' ? 'selected' : '' }}>Séances non validées</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button type="submit" 
+                                    class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-semibold transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                    </svg>
+                                    Filtrer
+                                </button>
+                            </div>
+                            @if(request()->has('valide'))
+                                <div>
+                                    <a href="{{ route('cours.index') }}" 
+                                        class="inline-flex items-center px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold transition-colors">
+                                        Réinitialiser
+                                    </a>
+                                </div>
+                            @endif
+                        </form>
+                    </div>
+                </div>
+            @endif
+
             <!-- Content Card -->
             <div class="glass rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
                 <div class="p-6">
@@ -71,6 +119,10 @@
                                         Durée</th>
                                     <th class="py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 text-center">
                                         Absents</th>
+                                    @if($user->role === 'D')
+                                        <th class="py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 text-center">
+                                            Statut</th>
+                                    @endif
                                     <th class="py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 text-right">
                                         Actions</th>
                                 </tr>
@@ -136,8 +188,41 @@
                                                 <span class="text-gray-400">—</span>
                                             @endif
                                         </td>
+                                        @if($user->role === 'D')
+                                            <td class="py-4 px-4 text-center">
+                                                @if($seance->Valide)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        Validée
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        En attente
+                                                    </span>
+                                                @endif
+                                            </td>
+                                        @endif
                                         <td class="py-4 px-4 text-right">
                                             <div class="flex items-center justify-end gap-2">
+                                                <!-- Bouton Valider pour Direction si séance non validée -->
+                                                @if($user->role === 'D' && !$seance->Valide)
+                                                    <form method="POST" action="{{ route('cours.valider', $seance->NumC) }}" class="inline-block">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="p-2 rounded-lg text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
+                                                            title="Valider la séance"
+                                                            onclick="return confirm('Valider cette séance ?');">
+                                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                @endif
                                                 <a href="{{ route('cours.show', $seance) }}"
                                                     class="p-2 rounded-lg text-gray-500 hover:text-primary-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                                                     title="Voir">

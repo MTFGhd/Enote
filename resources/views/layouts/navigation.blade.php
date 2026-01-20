@@ -18,24 +18,17 @@
         <div class="flex h-20 items-center justify-between">
             <div class="flex items-center gap-10">
                 <!-- Logo -->
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-2 group">
-                    <div
-                        class="bg-primary-600 text-white p-2 rounded-xl group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-primary-500/30">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
-                            stroke="currentColor" class="w-6 h-6">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                        </svg>
-                    </div>
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group">
+                    <img src="{{ asset('enote-logo.png') }}" alt="{{ config('app.name', 'Enote') }}" class="h-12 w-auto group-hover:scale-105 transition-transform duration-300">
                     <span class="text-2xl font-display font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-                        {{ config('app.name', 'Laravel') }}
+                        {{ config('app.name', 'Enote') }}
                     </span>
                 </a>
 
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex items-center gap-1">
                     <a href="{{ route('dashboard') }}"
-                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 
+                        class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
                         {{ request()->routeIs('dashboard') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}">
                         Dashboard
                     </a>
@@ -44,7 +37,7 @@
                     <div class="relative" @click.outside="gestionOpen = false">
                         <button type="button"
                             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                            {{ request()->is('departements*', 'classes*', 'matieres*', 'enseignants*', 'cours*', 'avancement*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}"
+                            {{ request()->is('users*', 'departements*', 'classes*', 'matieres*', 'enseignants*', 'cours*', 'avancement*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }}"
                             @click="gestionOpen = !gestionOpen" :aria-expanded="gestionOpen.toString()">
                             <span>Gestion</span>
                             <svg class="h-4 w-4 transition-transform duration-200" :class="{'rotate-180': gestionOpen}"
@@ -66,6 +59,8 @@
                             @if (Auth::user()->role === 'admin')
                                 <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                     Administration</div>
+                                <a href="{{ route('users.index') }}"
+                                    class="block px-4 py-2.5 text-sm transition-colors {{ request()->is('users*') ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300' : 'text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/40 hover:text-primary-600 dark:hover:text-primary-300' }}">Utilisateurs</a>
                                 <a href="{{ route('departements.index') }}"
                                     class="block px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-primary-50 dark:hover:bg-primary-900/40 hover:text-primary-600 dark:hover:text-primary-300 transition-colors">Départements</a>
                                 <a href="{{ route('classes.index') }}"
@@ -207,6 +202,8 @@
             </div>
 
             @if (Auth::user()->role === 'admin')
+                <a href="{{ route('users.index') }}"
+                    class="block px-3 py-2 rounded-lg text-base font-medium {{ request()->is('users*') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900' }}">Utilisateurs</a>
                 <a href="{{ route('departements.index') }}"
                     class="block px-3 py-2 rounded-lg text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900">Départements</a>
                 <a href="{{ route('classes.index') }}"

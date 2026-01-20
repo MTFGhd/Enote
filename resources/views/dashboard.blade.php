@@ -64,6 +64,8 @@
                                 <p class="text-primary-100 mb-6 max-w-lg">Accédez à tous les outils d'administration pour
                                     gérer les départements, classes et enseignants en un seul endroit.</p>
                                 <div class="flex flex-wrap gap-3">
+                                    <a href="{{ route('users.index') }}"
+                                        class="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-lg text-sm font-semibold transition-all">Utilisateurs</a>
                                     <a href="{{ route('departements.index') }}"
                                         class="px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-lg text-sm font-semibold transition-all">Départements</a>
                                     <a href="{{ route('classes.index') }}"
@@ -114,6 +116,22 @@
                         </h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             @if($isAdmin)
+                                <a href="{{ route('users.index') }}"
+                                    class="group glass p-5 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                                    <div class="flex items-start justify-between">
+                                        <div
+                                            class="p-3 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 group-hover:bg-primary-600 group-hover:text-white transition-colors duration-300">
+                                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M17 20h5v-1a6 6 0 00-9-5.197M17 20v-1a6 6 0 00-9-5.197M17 20H7m0 0H2v-1a6 6 0 0112 0v1m-1-11a4 4 0 11-8 0 4 4 0 018 0z" />
+                                            </svg>
+                                        </div>
+                                        <div class="text-gray-400 group-hover:text-primary-500 transition-colors">↗</div>
+                                    </div>
+                                    <h4 class="mt-4 font-semibold text-gray-900 dark:text-white">Utilisateurs</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Gérer les comptes</p>
+                                </a>
+
                                 <a href="{{ route('departements.index') }}"
                                     class="group glass p-5 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-primary-500/50 dark:hover:border-primary-500/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                                     <div class="flex items-start justify-between">

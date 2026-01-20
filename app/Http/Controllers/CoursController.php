@@ -9,6 +9,8 @@ use App\Models\Matieres;
 use App\Models\Avancement;
 use App\Http\Requests\CoursRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CoursController extends Controller
 {
@@ -25,12 +27,42 @@ class CoursController extends Controller
                 ->where('CodeE', $user->CodeE)
                 ->get();
         }
-        // Role D (Direction) ou admin : Consulter toutes les séances
+        // Role D (Direction) ou admin : Consulter toutes les séances avec filtre
         else {
-            $cours = Cours::with('enseignant', 'classe', 'matiere')->get();
+            $query = Cours::with('enseignant', 'classe', 'matiere');
+            
+            // Pour le rôle Direction, permettre de filtrer par validation
+            if ($user->role === 'D' && request()->has('valide')) {
+                $valide = request()->get('valide');
+                if ($valide === '1' || $valide === '0') {
+                    $query->where('Valide', $valide === '1');
+                }
+            }
+            
+            $cours = $query->get();
         }
 
         return view('cours.index', compact('cours'));
+    }
+
+    /**
+     * Valider une séance (Direction uniquement)
+     */
+    public function valider(string $id)
+    {
+        $user = Auth::user();
+
+        // Seul le rôle Direction peut valider
+        if ($user->role !== 'D') {
+            abort(403, 'Seule la Direction peut valider des séances.');
+        }
+
+        $cours = Cours::findOrFail($id);
+        $cours->Valide = true;
+        $cours->save();
+
+        return redirect()->back()
+            ->with('success', 'Séance validée avec succès.');
     }
 
     /**
@@ -202,5 +234,115 @@ class CoursController extends Controller
 
         return redirect()->route('cours.index')
             ->with('success', 'Cours supprimé avec succès.');
+    }
+
+    /**
+     * Afficher le formulaire pour générer un PDF de séances validées
+     */
+    public function pdfSeancesForm()
+    {
+        $user = Auth::user();
+
+        // Accessible uniquement par Direction
+        if ($user->role !== 'D') {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        return view('cours.pdf-seances-form');
+    }
+
+    /**
+     * Générer un PDF des séances validées dans une période
+     */
+    public function pdfSeances(Request $request)
+    {
+        $user = Auth::user();
+
+        // Accessible uniquement par Direction
+        if ($user->role !== 'D') {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'date_debut' => 'required|date',
+            'date_fin' => 'required|date|after_or_equal:date_debut',
+        ]);
+
+        $dateDebut = $request->date_debut;
+        $dateFin = $request->date_fin;
+
+        $cours = Cours::with('enseignant', 'classe', 'matiere')
+            ->where('Valide', true)
+            ->whereBetween('Jour', [$dateDebut, $dateFin])
+            ->orderBy('Jour', 'asc')
+            ->orderBy('HeureDebut', 'asc')
+            ->get();
+
+        $pdf = Pdf::loadView('cours.pdf-seances', [
+            'cours' => $cours,
+            'dateDebut' => $dateDebut,
+            'dateFin' => $dateFin,
+        ]);
+
+        return $pdf->download('seances_validees_' . $dateDebut . '_' . $dateFin . '.pdf');
+    }
+
+    /**
+     * Afficher le formulaire pour générer un PDF d'avancement
+     */
+    public function pdfAvancementForm()
+    {
+        $user = Auth::user();
+
+        // Accessible uniquement par Direction
+        if ($user->role !== 'D') {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        $enseignants = Enseignants::all();
+        $classes = Classes::all();
+        $matieres = Matieres::all();
+
+        return view('cours.pdf-avancement-form', compact('enseignants', 'classes', 'matieres'));
+    }
+
+    /**
+     * Générer un PDF de l'avancement par Formateur/Groupe/Module
+     */
+    public function pdfAvancement(Request $request)
+    {
+        $user = Auth::user();
+
+        // Accessible uniquement par Direction
+        if ($user->role !== 'D') {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        $request->validate([
+            'code_e' => 'nullable|exists:Enseignants,CodeE',
+            'code_c' => 'nullable|exists:Classes,CodeC',
+            'code_m' => 'nullable|exists:Matieres,CodeM',
+        ]);
+
+        $query = Avancement::with('enseignant', 'classe', 'matiere');
+
+        if ($request->filled('code_e')) {
+            $query->where('CodeE', $request->code_e);
+        }
+        if ($request->filled('code_c')) {
+            $query->where('CodeC', $request->code_c);
+        }
+        if ($request->filled('code_m')) {
+            $query->where('CodeM', $request->code_m);
+        }
+
+        $avancements = $query->get();
+
+        $pdf = Pdf::loadView('cours.pdf-avancement', [
+            'avancements' => $avancements,
+            'filters' => $request->only(['code_e', 'code_c', 'code_m']),
+        ]);
+
+        return $pdf->download('avancement_' . date('Y-m-d') . '.pdf');
     }
 }
