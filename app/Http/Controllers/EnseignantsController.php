@@ -2,24 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ClientsRequest;
-use App\Models\Clients;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Str;
-use Throwable;
+use App\Models\Enseignants;
+use App\Http\Requests\EnseignantsRequest;
+use Illuminate\Support\Facades\Auth;
 
-class ClientsController extends Controller
+class EnseignantsController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $clients = Clients::query()
-            ->orderBy('Nom')
-            ->paginate(15);
-
-        return view('clients.index', compact('clients'));
+        $enseignants = Enseignants::all();
+        return view('enseignants.index', compact('enseignants'));
     }
 
     /**
@@ -27,92 +22,62 @@ class ClientsController extends Controller
      */
     public function create()
     {
-        return view('clients.create');
+        return view('enseignants.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ClientsRequest $request)
+    public function store(EnseignantsRequest $request)
     {
-        $data = $request->validated();
+        $validated = $request->validated();
+        Enseignants::create($validated);
 
-        try {
-            $client = new Clients($data);
-            $client->IdClient = (string) Str::uuid();
-            $client->save();
-
-            return redirect()
-                ->route('clients.index')
-                ->with('success', 'Client créé avec succès.');
-        } catch (QueryException $e) {
-            return back()
-                ->withErrors(['error' => "Erreur base de données lors de la création du client."])
-                ->withInput();
-        } catch (Throwable $e) {
-            return back()
-                ->withErrors(['error' => "Une erreur est survenue lors de la création du client."])
-                ->withInput();
-        }
+        return redirect()->route('enseignants.index')
+            ->with('success', 'Enseignant créé avec succès.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Clients $client)
+    public function show(string $id)
     {
-        $client->load('Commandes');
-
-        return view('clients.show', compact('client'));
+        $enseignant = Enseignants::with('cours', 'avancements')->findOrFail($id);
+        return view('enseignants.show', compact('enseignant'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Clients $client)
+    public function edit(string $id)
     {
-        return view('clients.edit', compact('client'));
+        $enseignant = Enseignants::findOrFail($id);
+        return view('enseignants.edit', compact('enseignant'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(ClientsRequest $request, Clients $client)
+    public function update(EnseignantsRequest $request, string $id)
     {
-        $data = $request->validated();
+        $enseignant = Enseignants::findOrFail($id);
+        $validated = $request->validated();
+        $enseignant->update($validated);
 
-        try {
-            $client->update($data);
-
-            return redirect()
-                ->route('clients.index')
-                ->with('success', 'Client mis à jour avec succès.');
-        } catch (QueryException $e) {
-            return back()
-                ->withErrors(['error' => "Erreur base de données lors de la mise à jour du client."])
-                ->withInput();
-        } catch (Throwable $e) {
-            return back()
-                ->withErrors(['error' => "Une erreur est survenue lors de la mise à jour du client."])
-                ->withInput();
-        }
+        return redirect()->route('enseignants.index')
+            ->with('success', 'Enseignant modifié avec succès.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Clients $client)
+    public function destroy(string $id)
     {
-        try {
-            $client->delete();
+        $enseignant = Enseignants::findOrFail($id);
+        $enseignant->delete();
 
-            return redirect()
-                ->route('clients.index')
-                ->with('success', 'Client supprimé avec succès.');
-        } catch (QueryException $e) {
-            return back()->withErrors(['error' => 'Impossible de supprimer ce client (contraintes BD).']);
-        } catch (Throwable $e) {
-            return back()->withErrors(['error' => 'Impossible de supprimer ce client.']);
-        }
+        return redirect()->route('enseignants.index')
+            ->with('success', 'Enseignant supprimé avec succès.');
     }
 }
+

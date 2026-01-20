@@ -2,11 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Clients;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ClientsRequest extends FormRequest
+class EnseignantsRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,19 +22,16 @@ class ClientsRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var Clients|null $client */
-        $client = $this->route('client');
-
+        $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
+        
         return [
-            'Nom' => ['required', 'string', 'min:2', 'max:255'],
-            'Email' => [
-                'required',
+            'CodeE' => [
+                $isUpdate ? 'sometimes' : 'required',
                 'string',
-                'email',
-                'max:255',
-                Rule::unique('Clients', 'Email')->ignore($client?->IdClient, 'IdClient'),
+                'max:10',
+                Rule::unique('Enseignants', 'CodeE')->ignore($this->route('enseignant'), 'CodeE'),
             ],
-            'Adresse' => ['required', 'string', 'min:10', 'max:255'],
+            'Libelle' => ['required', 'string', 'max:60'],
         ];
     }
 }

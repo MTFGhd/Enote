@@ -3,8 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class CommandesRequest extends FormRequest
+class MatieresRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,10 +22,19 @@ class CommandesRequest extends FormRequest
      */
     public function rules(): array
     {
+        $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
+        
         return [
-            'DateCmd' => ['required', 'date'],
-            'Montant' => ['required', 'numeric', 'gt:0'],
-            'IdClient' => ['required', 'string', 'exists:Clients,IdClient'],
+            'CodeM' => [
+                $isUpdate ? 'sometimes' : 'required',
+                'string',
+                'max:10',
+                Rule::unique('Matieres', 'CodeM')->ignore($this->route('matiere'), 'CodeM'),
+            ],
+            'Libelle' => ['required', 'string', 'max:40'],
+            'MH' => ['required', 'numeric', 'min:0'],
+            'Coef' => ['required', 'in:1,3,5'],
+            'CodeD' => ['required', 'string', 'exists:Departements,CodeD'],
         ];
     }
 }

@@ -2,25 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FacturesRequest;
-use App\Models\Commandes;
-use App\Models\Factures;
-use Illuminate\Database\QueryException;
-use Throwable;
+use App\Models\Matieres;
+use App\Models\Departements;
+use App\Http\Requests\MatieresRequest;
+use Illuminate\Support\Facades\Auth;
 
-class FacturesController extends Controller
+class MatieresController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $factures = Factures::query()
-            ->with('Commande')
-            ->orderByDesc('DateFact')
-            ->paginate(15);
-
-        return view('factures.index', compact('factures'));
+        $matieres = Matieres::with('departement')->get();
+        return view('matieres.index', compact('matieres'));
     }
 
     /**
@@ -28,100 +23,64 @@ class FacturesController extends Controller
      */
     public function create()
     {
-        $commandes = Commandes::query()
-            ->with('Clients')
-            ->orderByDesc('DateCmd')
-            ->get();
-
-        return view('factures.create', compact('commandes'));
+        $departements = Departements::all();
+        return view('matieres.create', compact('departements'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(FacturesRequest $request)
+    public function store(MatieresRequest $request)
     {
-        $data = $request->validated();
+        $validated = $request->validated();
+        Matieres::create($validated);
 
-        try {
-            Factures::create($data);
-
-            return redirect()
-                ->route('factures.index')
-                ->with('success', 'Facture créée avec succès.');
-        } catch (QueryException $e) {
-            return back()
-                ->withErrors(['error' => 'Erreur base de données lors de la création de la facture.'])
-                ->withInput();
-        } catch (Throwable $e) {
-            return back()
-                ->withErrors(['error' => 'Une erreur est survenue lors de la création de la facture.'])
-                ->withInput();
-        }
+        return redirect()->route('matieres.index')
+            ->with('success', 'Matière créée avec succès.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Factures $facture)
+    public function show(string $id)
     {
-        $facture->load(['Commande.Clients']);
-
-        return view('factures.show', compact('facture'));
+        $matiere = Matieres::with('departement', 'cours', 'avancements')->findOrFail($id);
+        return view('matieres.show', compact('matiere'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Factures $facture)
+    public function edit(string $id)
     {
-        $commandes = Commandes::query()
-            ->with('Clients')
-            ->orderByDesc('DateCmd')
-            ->get();
-
-        return view('factures.edit', compact('facture', 'commandes'));
+        $matiere = Matieres::findOrFail($id);
+        $departements = Departements::all();
+        return view('matieres.edit', compact('matiere', 'departements'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(FacturesRequest $request, Factures $facture)
+    public function update(MatieresRequest $request, string $id)
     {
-        $data = $request->validated();
+        $matiere = Matieres::findOrFail($id);
+        $validated = $request->validated();
+        $matiere->update($validated);
 
-        try {
-            $facture->update($data);
-
-            return redirect()
-                ->route('factures.index')
-                ->with('success', 'Facture mise à jour avec succès.');
-        } catch (QueryException $e) {
-            return back()
-                ->withErrors(['error' => 'Erreur base de données lors de la mise à jour de la facture.'])
-                ->withInput();
-        } catch (Throwable $e) {
-            return back()
-                ->withErrors(['error' => 'Une erreur est survenue lors de la mise à jour de la facture.'])
-                ->withInput();
-        }
+        return redirect()->route('matieres.index')
+            ->with('success', 'Matière modifiée avec succès.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Factures $facture)
+    public function destroy(string $id)
     {
-        try {
-            $facture->delete();
+        $matiere = Matieres::findOrFail($id);
+        $matiere->delete();
 
-            return redirect()
-                ->route('factures.index')
-                ->with('success', 'Facture supprimée avec succès.');
-        } catch (QueryException $e) {
-            return back()->withErrors(['error' => 'Impossible de supprimer cette facture (contraintes BD).']);
-        } catch (Throwable $e) {
-            return back()->withErrors(['error' => 'Impossible de supprimer cette facture.']);
-        }
+        return redirect()->route('matieres.index')
+            ->with('success', 'Matière supprimée avec succès.');
     }
 }
+

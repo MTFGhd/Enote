@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CommandesRequest extends FormRequest
+class AvancementRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,10 +21,25 @@ class CommandesRequest extends FormRequest
      */
     public function rules(): array
     {
+        $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
+        
         return [
-            'DateCmd' => ['required', 'date'],
-            'Montant' => ['required', 'numeric', 'gt:0'],
-            'IdClient' => ['required', 'string', 'exists:Clients,IdClient'],
+            'CodeE' => [
+                $isUpdate ? 'sometimes' : 'required',
+                'string',
+                'exists:Enseignants,CodeE'
+            ],
+            'CodeC' => [
+                $isUpdate ? 'sometimes' : 'required',
+                'string',
+                'exists:Classes,CodeC'
+            ],
+            'CodeM' => [
+                $isUpdate ? 'sometimes' : 'required',
+                'string',
+                'exists:Matieres,CodeM'
+            ],
+            'MHRealise' => ['required', 'numeric', 'min:0'],
         ];
     }
 }

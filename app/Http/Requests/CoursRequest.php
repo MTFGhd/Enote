@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Factures;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class FacturesRequest extends FormRequest
+class CoursRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,13 +22,15 @@ class FacturesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'DateFact' => 'required|date',
-            'IdCde' => [
-                'required',
-                'integer',
-                'exists:Commandes,IdCde',
-                Rule::unique('Factures', 'IdCde')->ignore($this->route('facture')?->IdFact, 'IdFact'),
-            ],
+            'CodeE' => ['required', 'string', 'exists:Enseignants,CodeE'],
+            'CodeC' => ['required', 'string', 'exists:Classes,CodeC'],
+            'CodeM' => ['required', 'string', 'exists:Matieres,CodeM'],
+            'Type' => ['required', 'in:C,T,E'],
+            'Jour' => ['required', 'date'],
+            'HeureDebut' => ['required', 'date_format:H:i'],
+            'HeureFin' => ['required', 'date_format:H:i', 'after:HeureDebut'],
+            'Duree' => ['required', 'numeric', 'min:0'],
+            'NbAbsent' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

@@ -2,25 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FacturesRequest;
-use App\Models\Commandes;
-use App\Models\Factures;
-use Illuminate\Database\QueryException;
-use Throwable;
+use App\Models\Departements;
+use App\Http\Requests\DepartementsRequest;
+use Illuminate\Support\Facades\Auth;
 
-class FacturesController extends Controller
+class DepartementsController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $factures = Factures::query()
-            ->with('Commande')
-            ->orderByDesc('DateFact')
-            ->paginate(15);
-
-        return view('factures.index', compact('factures'));
+        $departements = Departements::all();
+        return view('departements.index', compact('departements'));
     }
 
     /**
@@ -28,100 +22,61 @@ class FacturesController extends Controller
      */
     public function create()
     {
-        $commandes = Commandes::query()
-            ->with('Clients')
-            ->orderByDesc('DateCmd')
-            ->get();
-
-        return view('factures.create', compact('commandes'));
+        return view('departements.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(FacturesRequest $request)
+    public function store(DepartementsRequest $request)
     {
-        $data = $request->validated();
+        $validated = $request->validated();
+        Departements::create($validated);
 
-        try {
-            Factures::create($data);
-
-            return redirect()
-                ->route('factures.index')
-                ->with('success', 'Facture créée avec succès.');
-        } catch (QueryException $e) {
-            return back()
-                ->withErrors(['error' => 'Erreur base de données lors de la création de la facture.'])
-                ->withInput();
-        } catch (Throwable $e) {
-            return back()
-                ->withErrors(['error' => 'Une erreur est survenue lors de la création de la facture.'])
-                ->withInput();
-        }
+        return redirect()->route('departements.index')
+            ->with('success', 'Département créé avec succès.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Factures $facture)
+    public function show(string $id)
     {
-        $facture->load(['Commande.Clients']);
-
-        return view('factures.show', compact('facture'));
+        $departement = Departements::findOrFail($id);
+        return view('departements.show', compact('departement'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Factures $facture)
+    public function edit(string $id)
     {
-        $commandes = Commandes::query()
-            ->with('Clients')
-            ->orderByDesc('DateCmd')
-            ->get();
-
-        return view('factures.edit', compact('facture', 'commandes'));
+        $departement = Departements::findOrFail($id);
+        return view('departements.edit', compact('departement'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(FacturesRequest $request, Factures $facture)
+    public function update(DepartementsRequest $request, string $id)
     {
-        $data = $request->validated();
+        $departement = Departements::findOrFail($id);
+        $validated = $request->validated();
+        $departement->update($validated);
 
-        try {
-            $facture->update($data);
-
-            return redirect()
-                ->route('factures.index')
-                ->with('success', 'Facture mise à jour avec succès.');
-        } catch (QueryException $e) {
-            return back()
-                ->withErrors(['error' => 'Erreur base de données lors de la mise à jour de la facture.'])
-                ->withInput();
-        } catch (Throwable $e) {
-            return back()
-                ->withErrors(['error' => 'Une erreur est survenue lors de la mise à jour de la facture.'])
-                ->withInput();
-        }
+        return redirect()->route('departements.index')
+            ->with('success', 'Département modifié avec succès.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Factures $facture)
+    public function destroy(string $id)
     {
-        try {
-            $facture->delete();
+        $departement = Departements::findOrFail($id);
+        $departement->delete();
 
-            return redirect()
-                ->route('factures.index')
-                ->with('success', 'Facture supprimée avec succès.');
-        } catch (QueryException $e) {
-            return back()->withErrors(['error' => 'Impossible de supprimer cette facture (contraintes BD).']);
-        } catch (Throwable $e) {
-            return back()->withErrors(['error' => 'Impossible de supprimer cette facture.']);
-        }
+        return redirect()->route('departements.index')
+            ->with('success', 'Département supprimé avec succès.');
     }
 }

@@ -2,25 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CommandesRequest;
-use App\Models\Clients;
-use App\Models\Commandes;
-use Illuminate\Database\QueryException;
-use Throwable;
+use App\Models\Cours;
+use App\Models\Enseignants;
+use App\Models\Classes;
+use App\Models\Matieres;
+use App\Models\Avancement;
+use App\Http\Requests\CoursRequest;
+use Illuminate\Support\Facades\Auth;
 
-class CommandesController extends Controller
+class CoursController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $commandes = Commandes::query()
-            ->with('Clients')
-            ->orderByDesc('DateCmd')
-            ->paginate(15);
+        $user = Auth::user();
 
-        return view('commandes.index', compact('commandes'));
+        // Role E (Enseignant) : Consulter ses séances uniquement
+        if ($user->role === 'E') {
+            $cours = Cours::with('enseignant', 'classe', 'matiere')
+                ->where('CodeE', $user->CodeE)
+                ->get();
+        }
+        // Role D (Direction) ou admin : Consulter toutes les séances
+        else {
+            $cours = Cours::with('enseignant', 'classe', 'matiere')->get();
+        }
+
+        return view('cours.index', compact('cours'));
     }
 
     /**
@@ -28,98 +38,169 @@ class CommandesController extends Controller
      */
     public function create()
     {
-        $clients = Clients::query()
-            ->orderBy('Nom')
-            ->get();
+        $user = Auth::user();
 
-        return view('commandes.create', compact('clients'));
+        // Seuls les enseignants et admins peuvent créer des cours
+        if (!in_array($user->role, ['E', 'admin'])) {
+            abort(403, 'Seuls les enseignants peuvent saisir une séance.');
+        }
+
+        $enseignants = Enseignants::all();
+
+        if ($user->role === 'E') {
+            // Vérifier si l'utilisateur est bien lié à un enseignant
+            if (empty($user->CodeE)) {
+                return redirect()->route('cours.index')
+                    ->with('error', 'Votre compte utilisateur n\'est pas lié à une fiche enseignant. Veuillez contacter l\'administrateur.');
+            }
+
+            // Pour un enseignant, on ne propose que ses matières et ses classes (via Avancement)
+            $avancements = Avancement::where('CodeE', $user->CodeE)->get(['CodeC', 'CodeM']);
+
+            if ($avancements->isEmpty()) {
+                return redirect()->route('cours.index')
+                    ->with('error', 'Aucune classe ni matière ne vous est affectée. Veuillez contacter l\'administrateur pour configurer vos avancements.');
+            }
+
+            $classesIds = $avancements->pluck('CodeC')->unique();
+            $matieresIds = $avancements->pluck('CodeM')->unique();
+
+            $classes = Classes::whereIn('CodeC', $classesIds)->get();
+            $matieres = Matieres::whereIn('CodeM', $matieresIds)->get();
+        } else {
+            $classes = Classes::all();
+            $matieres = Matieres::all();
+        }
+
+        return view('cours.create', compact('enseignants', 'classes', 'matieres'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CommandesRequest $request)
+    public function store(CoursRequest $request)
     {
-        $data = $request->validated();
+        $user = Auth::user();
 
-        try {
-            Commandes::create($data);
-
-            return redirect()
-                ->route('commandes.index')
-                ->with('success', 'Commande créée avec succès.');
-        } catch (QueryException $e) {
-            return back()
-                ->withErrors(['error' => 'Erreur base de données lors de la création de la commande.'])
-                ->withInput();
-        } catch (Throwable $e) {
-            return back()
-                ->withErrors(['error' => 'Une erreur est survenue lors de la création de la commande.'])
-                ->withInput();
+        // Seuls les enseignants et admins peuvent créer des cours
+        if (!in_array($user->role, ['E', 'admin'])) {
+            abort(403, 'Seuls les enseignants peuvent saisir une séance.');
         }
+
+        $validated = $request->validated();
+
+        // Si c'est un enseignant, vérifier qu'il crée son propre cours
+        if ($user->role === 'E' && $validated['CodeE'] !== $user->CodeE) {
+            abort(403, 'Vous ne pouvez créer que vos propres séances.');
+        }
+
+        Cours::create($validated);
+
+        return redirect()->route('cours.index')
+            ->with('success', 'Cours créé avec succès.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Commandes $commande)
+    public function show(string $id)
     {
-        $commande->load(['Clients', 'Facture']);
+        $user = Auth::user();
+        $cours = Cours::with('enseignant', 'classe', 'matiere')->findOrFail($id);
 
-        return view('commandes.show', compact('commande'));
+        // Enseignant ne peut consulter que ses propres séances
+        if ($user->role === 'E' && $cours->CodeE !== $user->CodeE) {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        return view('cours.show', compact('cours'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Commandes $commande)
+    public function edit(string $id)
     {
-        $clients = Clients::query()
-            ->orderBy('Nom')
-            ->get();
+        $user = Auth::user();
+        $cours = Cours::findOrFail($id);
 
-        return view('commandes.edit', compact('commande', 'clients'));
+        // Seuls les enseignants et admins peuvent éditer
+        if (!in_array($user->role, ['E', 'admin'])) {
+            abort(403, 'Accès non autorisé.');
+        }
+
+        // Enseignant ne peut éditer que ses propres séances
+        if ($user->role === 'E' && $cours->CodeE !== $user->CodeE) {
+            abort(403, 'Vous ne pouvez modifier que vos propres séances.');
+        }
+
+        $enseignants = Enseignants::all();
+
+        if ($user->role === 'E') {
+            // Vérifier si l'utilisateur est bien lié à un enseignant
+            if (empty($user->CodeE)) {
+                return redirect()->route('cours.index')
+                    ->with('error', 'Votre compte utilisateur n\'est pas lié à une fiche enseignant.');
+            }
+
+            // Pour un enseignant, on ne propose que ses matières et ses classes (via Avancement)
+            // + celles du cours actuel au cas où elles ne seraient plus dans Avancement
+            $avancements = Avancement::where('CodeE', $user->CodeE)->get(['CodeC', 'CodeM']);
+
+            $classesIds = $avancements->pluck('CodeC')->push($cours->CodeC)->unique();
+            $matieresIds = $avancements->pluck('CodeM')->push($cours->CodeM)->unique();
+
+            $classes = Classes::whereIn('CodeC', $classesIds)->get();
+            $matieres = Matieres::whereIn('CodeM', $matieresIds)->get();
+        } else {
+            $classes = Classes::all();
+            $matieres = Matieres::all();
+        }
+
+        return view('cours.edit', compact('cours', 'enseignants', 'classes', 'matieres'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(CommandesRequest $request, Commandes $commande)
+    public function update(CoursRequest $request, string $id)
     {
-        $data = $request->validated();
+        $user = Auth::user();
+        $cours = Cours::findOrFail($id);
 
-        try {
-            $commande->update($data);
-
-            return redirect()
-                ->route('commandes.index')
-                ->with('success', 'Commande mise à jour avec succès.');
-        } catch (QueryException $e) {
-            return back()
-                ->withErrors(['error' => 'Erreur base de données lors de la mise à jour de la commande.'])
-                ->withInput();
-        } catch (Throwable $e) {
-            return back()
-                ->withErrors(['error' => 'Une erreur est survenue lors de la mise à jour de la commande.'])
-                ->withInput();
+        // Seuls les enseignants et admins peuvent modifier
+        if (!in_array($user->role, ['E', 'admin'])) {
+            abort(403, 'Accès non autorisé.');
         }
+
+        // Enseignant ne peut modifier que ses propres séances
+        if ($user->role === 'E' && $cours->CodeE !== $user->CodeE) {
+            abort(403, 'Vous ne pouvez modifier que vos propres séances.');
+        }
+
+        $validated = $request->validated();
+        $cours->update($validated);
+
+        return redirect()->route('cours.index')
+            ->with('success', 'Cours modifié avec succès.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Commandes $commande)
+    public function destroy(string $id)
     {
-        try {
-            $commande->delete();
+        $user = Auth::user();
 
-            return redirect()
-                ->route('commandes.index')
-                ->with('success', 'Commande supprimée avec succès.');
-        } catch (QueryException $e) {
-            return back()->withErrors(['error' => 'Impossible de supprimer cette commande (contraintes BD).']);
-        } catch (Throwable $e) {
-            return back()->withErrors(['error' => 'Impossible de supprimer cette commande.']);
+        // Seul l'admin peut supprimer
+        if ($user->role !== 'admin') {
+            abort(403, 'Seul l\'administrateur peut supprimer des séances.');
         }
+
+        $cours = Cours::findOrFail($id);
+        $cours->delete();
+
+        return redirect()->route('cours.index')
+            ->with('success', 'Cours supprimé avec succès.');
     }
 }
