@@ -12,25 +12,30 @@ export default {
 
     theme: {
         extend: {
-            fontFamily: {
-                sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                display: ['Outfit', ...defaultTheme.fontFamily.sans],
-            },
             colors: {
                 primary: {
-                     50: '#f5f3ff',
-                    100: '#ede9fe',
-                    200: '#ddd6fe',
-                    300: '#c4b5fd',
-                    400: '#a78bfa',
-                    500: '#8b5cf6',
-                    600: '#7c3aed',
-                    700: '#6d28d9',
-                    800: '#5b21b6',
-                    900: '#4c1d95',
-                    950: '#2e1065',
-                }
-            }
+                    DEFAULT: '#2e31ea',
+                    50: '#eff0ff',
+                    100: '#e0e1ff',
+                    200: '#c1c4ff',
+                    300: '#9499ff',
+                    400: '#6260ff',
+                    500: '#3a36fc',
+                    600: '#2e31ea', // Design primary
+                    700: '#2622d0',
+                    800: '#201da6',
+                    900: '#1e1b85',
+                    950: '#13114d',
+                },
+                "background-light": "#f6f6f8",
+                "background-dark": "#111121",
+                "surface-dark": "#1e293b",
+                "card-dark": "#292938",
+            },
+            fontFamily: {
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                display: ['Lexend', 'Outfit', ...defaultTheme.fontFamily.sans],
+            },
         },
     },
 

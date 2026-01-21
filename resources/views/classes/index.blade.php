@@ -1,161 +1,103 @@
 <x-app-layout>
-    <div class="py-12 relative z-10">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Header Section -->
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <div>
-                    <h2 class="text-3xl font-display font-bold text-gray-900 dark:text-white">
-                        {{ __('Classes') }}
-                    </h2>
-                    <p class="text-gray-600 dark:text-gray-400 mt-1">
-                        Gestion des classes et groupes d'étudiants.
-                    </p>
-                </div>
+    <x-slot name="header">
+        Classes
+    </x-slot>
 
-                @php
-                    $canManage = Auth::user()->role === 'admin';
-                @endphp
-
-                @if ($canManage)
-                    <a href="{{ route('classes.create') }}"
-                        class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5 hover:shadow-primary-500/50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        {{ __('Nouvelle classe') }}
-                    </a>
-                @endif
+    <div class="max-w-7xl mx-auto flex flex-col gap-6">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+            <div class="flex flex-col gap-2">
+                <h1 class="text-slate-900 dark:text-white text-3xl md:text-4xl font-black leading-tight tracking-tight">Liste des Classes</h1>
+                <p class="text-[#64748b] dark:text-gray-400 text-base font-normal leading-normal max-w-2xl">
+                    Gérez vos classes académiques, suivez les inscriptions des étudiants et organisez les plannings départementaux.
+                </p>
             </div>
+            @if(Auth::user()->role === 'admin')
+            <a href="{{ route('classes.create') }}" class="flex items-center justify-center gap-2 rounded-xl h-11 px-6 bg-primary hover:bg-primary-hover text-white text-sm font-bold leading-normal tracking-wide transition-all shadow-lg shadow-primary/20 shrink-0">
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                <span class="truncate">Nouvelle Classe</span>
+            </a>
+            @endif
+        </div>
 
-            <!-- Content Card -->
-            <div class="glass rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
-                <div class="p-6">
-                    @if (session('success'))
-                        <div
-                            class="mb-6 p-4 rounded-xl bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-100 dark:border-green-800 flex items-center gap-3">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            {{ session('success') }}
-                        </div>
-                    @endif
-
-                    @if ($errors->any())
-                        <div
-                            class="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-800">
-                            <ul class="list-disc list-inside">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm">
-                            <thead>
-                                <tr class="text-left border-b border-gray-200 dark:border-gray-700">
-                                    <th class="py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Code</th>
-                                    <th class="py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Libellé</th>
-                                    <th class="py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Département
-                                    </th>
-                                    <th class="py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 text-right">
-                                        Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                                @forelse ($classes as $classe)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                        <td class="py-4 px-4 font-medium text-gray-900 dark:text-white">
-                                            <span
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-mono">
-                                                {{ $classe->CodeC }}
-                                            </span>
-                                        </td>
-                                        <td class="py-4 px-4 text-gray-600 dark:text-gray-300">{{ $classe->Libelle }}</td>
-                                        <td class="py-4 px-4">
-                                            <div class="flex items-center gap-2">
-                                                <span
-                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
-                                                    {{ $classe->CodeD }}
-                                                </span>
-                                                @if ($classe->departement?->Libelle)
-                                                    <span
-                                                        class="text-xs text-gray-500 dark:text-gray-400">{{ $classe->departement->Libelle }}</span>
-                                                @endif
-                                            </div>
-                                        </td>
-                                        <td class="py-4 px-4 text-right">
-                                            <div class="flex items-center justify-end gap-2">
-                                                <a href="{{ route('classes.show', $classe) }}"
-                                                    class="p-2 rounded-lg text-gray-500 hover:text-primary-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                                    title="Voir">
-                                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                                                        stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                </a>
-                                                @if ($canManage)
-                                                    <a href="{{ route('classes.edit', $classe) }}"
-                                                        class="p-2 rounded-lg text-gray-500 hover:text-indigo-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                                        title="Modifier">
-                                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                                                            stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
-                                                    </a>
-                                                    <form method="POST" action="{{ route('classes.destroy', $classe) }}"
-                                                        onsubmit="return confirm('Supprimer cette classe ?');"
-                                                        class="inline-block">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit"
-                                                            class="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                                            title="Supprimer">
-                                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                                                                stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2"
-                                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                            </svg>
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td class="py-8 text-center text-gray-500 dark:text-gray-400" colspan="4">
-                                            <div class="flex flex-col items-center justify-center">
-                                                <svg class="w-12 h-12 mb-3 text-gray-300 dark:text-gray-600" fill="none"
-                                                    viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                </svg>
-                                                <p>Aucune classe trouvée.</p>
-                                                @if ($canManage)
-                                                    <a href="{{ route('classes.create') }}"
-                                                        class="mt-2 text-primary-600 hover:text-primary-500 font-medium">Créer
-                                                        la première classe</a>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div class="md:col-span-8 lg:col-span-9">
+                <div class="relative flex w-full items-center h-12 rounded-xl bg-white dark:bg-[#292938] border border-gray-200 dark:border-white/5 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/50 transition-all shadow-sm">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-[#64748b]">
+                        <span class="material-symbols-outlined">search</span>
                     </div>
+                    <!-- TODO: Implement search with Livewire or form submission -->
+                    <input class="w-full h-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder-[#64748b] pl-11 pr-4 rounded-xl text-base" placeholder="Rechercher par nom, ID..." type="text"/>
                 </div>
+            </div>
+            <div class="md:col-span-4 lg:col-span-3">
+                 <!-- Placeholder filter -->
+                <button class="w-full flex items-center justify-between h-12 px-4 rounded-xl bg-white dark:bg-[#292938] border border-gray-200 dark:border-white/5 text-slate-700 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-colors text-sm font-medium">
+                    <span class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#64748b] text-[20px]">filter_list</span>
+                        <span>Tous les Départements</span>
+                    </span>
+                    <span class="material-symbols-outlined text-[#64748b] text-[20px]">expand_more</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col rounded-2xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#292938] shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 dark:bg-[#222230] border-b border-gray-200 dark:border-white/5">
+                            <th class="px-6 py-4 text-xs font-semibold text-[#64748b] uppercase tracking-wider w-[40%]">Nom de la Classe</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-[#64748b] uppercase tracking-wider w-[20%]">Département</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-[#64748b] uppercase tracking-wider w-[20%]">Cours Associés</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-[#64748b] uppercase tracking-wider w-[20%] text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-white/5">
+                        @foreach ($classes as $classe)
+                        <tr class="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col">
+                                    <span class="text-slate-900 dark:text-white font-medium text-base">{{ $classe->Libelle }}</span>
+                                    <span class="text-[#64748b] text-sm">{{ $classe->CodeC }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                    {{ $classe->departement->Libelle ?? $classe->CodeD }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2 text-slate-700 dark:text-gray-300">
+                                    <span class="material-symbols-outlined text-[18px] text-[#64748b]">school</span>
+                                    <span>{{ $classe->cours()->count() }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2 opacity-100 sm:opacity-60 sm:group-hover:opacity-100 transition-opacity">
+                                    <a href="{{ route('classes.show', $classe) }}" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-[#64748b] hover:text-slate-900 dark:hover:text-white transition-colors" title="Voir les détails">
+                                        <span class="material-symbols-outlined text-[20px]">visibility</span>
+                                    </a>
+                                    @if(Auth::user()->role === 'admin')
+                                    <a href="{{ route('classes.edit', $classe) }}" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10 text-[#64748b] hover:text-primary transition-colors" title="Modifier la classe">
+                                        <span class="material-symbols-outlined text-[20px]">edit</span>
+                                    </a>
+                                    <form method="POST" action="{{ route('classes.destroy', $classe) }}" onsubmit="return confirm('Êtes-vous sûr ?');" class="inline-block">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-[#64748b] hover:text-red-600 transition-colors" title="Supprimer la classe">
+                                            <span class="material-symbols-outlined text-[20px]">delete</span>
+                                        </button>
+                                    </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="border-t border-gray-200 dark:border-white/5 bg-white dark:bg-[#292938] px-6 py-4">
+                {{ $classes->links() }}
             </div>
         </div>
     </div>

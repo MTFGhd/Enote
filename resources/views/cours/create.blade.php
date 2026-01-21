@@ -166,4 +166,41 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const heureDebut = document.getElementById('HeureDebut');
+            const heureFin = document.getElementById('HeureFin');
+            const dureeInput = document.getElementById('Duree');
+
+            function calculateDuration() {
+                if (heureDebut.value && heureFin.value) {
+                    const debut = new Date('1970-01-01T' + heureDebut.value + 'Z');
+                    const fin = new Date('1970-01-01T' + heureFin.value + 'Z');
+                    
+                    let diffMs = fin - debut;
+                    
+                    // Si la date de fin est AVANT la date de début, on assume que c'est le lendemain ? 
+                    // Pour des cours, c'est rarement le cas, surement une erreur de saisie.
+                    // On gère le cas négatif en mettant 0
+                    if (diffMs < 0) {
+                        dureeInput.value = '';
+                        return;
+                    }
+
+                    // Conversion en heures (décimales)
+                    let diffHrs = diffMs / (1000 * 60 * 60);
+                    
+                    // Arrondir à 2 décimales
+                    dureeInput.value = Math.round(diffHrs * 100) / 100;
+                }
+            }
+
+            heureDebut.addEventListener('change', calculateDuration);
+            heureFin.addEventListener('change', calculateDuration);
+            
+            // Recalcul au chargement si valeurs présentes (valeur old())
+            calculateDuration();
+        });
+    </script>
 </x-app-layout>
