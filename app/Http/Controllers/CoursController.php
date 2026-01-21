@@ -7,6 +7,7 @@ use App\Models\Enseignants;
 use App\Models\Classes;
 use App\Models\Matieres;
 use App\Models\Avancement;
+use App\Models\Absence;
 use App\Http\Requests\CoursRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -126,7 +127,25 @@ class CoursController extends Controller
             abort(403, 'Vous ne pouvez créer que vos propres séances.');
         }
 
-        Cours::create($validated);
+        // Handle absences data
+        $absents = $request->input('absents', []);
+        
+        // Set NbAbsent based on checked students
+        $validated['NbAbsent'] = count($absents);
+
+        $cours = Cours::create($validated);
+
+        // Create individual absence records
+        if (!empty($absents)) {
+            foreach ($absents as $codeE) {
+                Absence::create([
+                    'CodeE' => $codeE,
+                    'NumC' => $cours->NumC,
+                    'Jour' => $cours->Jour,
+                    'Duree' => $cours->Duree,
+                ]);
+            }
+        }
 
         return redirect()->route('cours.index')
             ->with('success', 'Cours créé avec succès.');
@@ -154,7 +173,7 @@ class CoursController extends Controller
     public function edit(string $id)
     {
         $user = Auth::user();
-        $cours = Cours::findOrFail($id);
+        $cours = Cours::with('absences')->findOrFail($id);
 
         // Seuls les enseignants et admins peuvent éditer
         if (!in_array($user->role, ['E', 'admin'])) {
@@ -189,7 +208,10 @@ class CoursController extends Controller
             $matieres = Matieres::all();
         }
 
-        return view('cours.edit', compact('cours', 'enseignants', 'classes', 'matieres'));
+        // Get existing absences for this course
+        $existingAbsences = $cours->absences->pluck('CodeE')->toArray();
+
+        return view('cours.edit', compact('cours', 'enseignants', 'classes', 'matieres', 'existingAbsences'));
     }
 
     /**
@@ -211,7 +233,29 @@ class CoursController extends Controller
         }
 
         $validated = $request->validated();
+        
+        // Handle absences data
+        $absents = $request->input('absents', []);
+        
+        // Set NbAbsent based on checked students
+        $validated['NbAbsent'] = count($absents);
+        
         $cours->update($validated);
+
+        // Delete existing absences for this course
+        Absence::where('NumC', $cours->NumC)->delete();
+
+        // Create new absence records
+        if (!empty($absents)) {
+            foreach ($absents as $codeE) {
+                Absence::create([
+                    'CodeE' => $codeE,
+                    'NumC' => $cours->NumC,
+                    'Jour' => $cours->Jour,
+                    'Duree' => $cours->Duree,
+                ]);
+            }
+        }
 
         return redirect()->route('cours.index')
             ->with('success', 'Cours modifié avec succès.');

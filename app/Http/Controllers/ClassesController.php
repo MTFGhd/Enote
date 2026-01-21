@@ -15,7 +15,8 @@ class ClassesController extends Controller
     public function index()
     {
         $classes = Classes::with('departement')->get();
-        return view('classes.index', compact('classes'));
+        $departements = Departements::all();
+        return view('classes.index', compact('classes', 'departements'));
     }
 
     /**

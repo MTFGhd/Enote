@@ -68,4 +68,12 @@ class Cours extends Model
     {
         return $this->belongsTo(Matieres::class, 'CodeM', 'CodeM');
     }
+
+    /**
+     * Get the absences for this cours.
+     */
+    public function absences()
+    {
+        return $this->hasMany(Absence::class, 'NumC', 'NumC');
+    }
 }

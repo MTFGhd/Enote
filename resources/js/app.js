@@ -17,3 +17,6 @@ try {
 } catch (e) {
 	// Intentionally ignore DataTables initialization issues
 }
+
+// Import search functionality
+import './search';

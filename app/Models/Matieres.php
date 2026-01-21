@@ -15,7 +15,7 @@ class Matieres extends Model
     protected $keyType = 'string';
     public $timestamps = false;
     
-    protected $fillable = ['CodeM', 'CodeD', 'MH', 'Coef'];
+    protected $fillable = ['CodeM', 'Libelle', 'CodeD', 'MH', 'Coef'];
 
     /**
      * Get the departement that owns this matiere.

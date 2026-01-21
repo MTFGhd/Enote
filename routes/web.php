@@ -8,6 +8,8 @@ use App\Http\Controllers\EnseignantsController;
 use App\Http\Controllers\CoursController;
 use App\Http\Controllers\AvancementController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\EtudiantsController;
+use App\Http\Controllers\AbsenceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get("/", function () {
@@ -36,10 +38,19 @@ Route::middleware("auth")->group(function () {
         Route::resource("classes", ClassesController::class);
         Route::resource("matieres", MatieresController::class);
         Route::resource("enseignants", EnseignantsController::class);
+        Route::resource("etudiants", EtudiantsController::class);
     });
 
     // Routes accessibles à tous les utilisateurs authentifiés
     Route::resource("cours", CoursController::class);
+    
+    // API route to get students by class
+    Route::get("/api/classes/{codeC}/etudiants", [EtudiantsController::class, "getByClasse"])
+        ->name("api.classes.etudiants");
+    
+    // Route pour enregistrer les absences lors de la saisie d'une séance
+    Route::post("/cours/{id}/absences", [AbsenceController::class, "storeMultiple"])
+        ->name("cours.absences.store");
     
     // Route pour valider une séance (Direction uniquement)
     Route::post("/cours/{id}/valider", [CoursController::class, "valider"])
@@ -85,6 +96,34 @@ Route::middleware("auth")->group(function () {
         AvancementController::class,
         "destroy",
     ])->name("avancement.destroy");
+
+    // Routes spéciales pour Absence (clé composite)
+    Route::get("/absence", [AbsenceController::class, "index"])->name(
+        "absence.index",
+    );
+    Route::get("/absence/create", [
+        AbsenceController::class,
+        "create",
+    ])->name("absence.create");
+    Route::post("/absence", [AbsenceController::class, "store"])->name(
+        "absence.store",
+    );
+    Route::get("/absence/{codeE}/{numC}", [
+        AbsenceController::class,
+        "show",
+    ])->name("absence.show");
+    Route::get("/absence/{codeE}/{numC}/edit", [
+        AbsenceController::class,
+        "edit",
+    ])->name("absence.edit");
+    Route::put("/absence/{codeE}/{numC}", [
+        AbsenceController::class,
+        "update",
+    ])->name("absence.update");
+    Route::delete("/absence/{codeE}/{numC}", [
+        AbsenceController::class,
+        "destroy",
+    ])->name("absence.destroy");
 
     // Routes d'importation CSV (admin uniquement)
     Route::middleware("check.role:admin")->group(function () {

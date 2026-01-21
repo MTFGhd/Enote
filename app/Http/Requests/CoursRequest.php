@@ -31,6 +31,8 @@ class CoursRequest extends FormRequest
             'HeureFin' => ['required', 'date_format:H:i', 'after:HeureDebut'],
             'Duree' => ['required', 'numeric', 'min:0'],
             'NbAbsent' => ['nullable', 'integer', 'min:0'],
+            'absents' => ['nullable', 'array'],
+            'absents.*' => ['exists:Etudiants,CodeE'],
         ];
     }
 }

@@ -148,12 +148,50 @@
                             </div>
 
                             <div>
-                                <x-input-label for="NbAbsent" :value="__('Nombre d\'absents')"
+                                <x-input-label for="nb_absents_display" :value="__('Nombre d\'absents')"
                                     class="text-gray-700 dark:text-gray-300 font-medium mb-1" />
-                                <x-text-input id="NbAbsent" name="NbAbsent" type="number" min="0"
-                                    class="mt-1 block w-full" :value="old('NbAbsent')" placeholder="Ex: 0" />
-                                <x-input-error class="mt-2" :messages="$errors->get('NbAbsent')" />
+                                <div id="nb_absents_display" class="mt-1 block w-full px-4 py-2 bg-gray-100 dark:bg-gray-800/50 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-xl font-semibold">
+                                    0
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    Calculé automatiquement selon les étudiants cochés
+                                </p>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Liste des étudiants absents -->
+                    <div id="students_section" class="border-t border-gray-100 dark:border-gray-700 pt-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">group</span>
+                            Liste des étudiants
+                        </h3>
+                        
+                        <div id="students_placeholder" class="text-center py-12 bg-gray-50 dark:bg-gray-800/30 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
+                            <span class="material-symbols-outlined text-5xl text-gray-400 dark:text-gray-500 mb-3 block">person_search</span>
+                            <p class="text-gray-600 dark:text-gray-400 font-medium mb-1">
+                                Sélectionnez une classe et une matière
+                            </p>
+                            <p class="text-sm text-gray-500 dark:text-gray-500">
+                                La liste des étudiants s'affichera automatiquement
+                            </p>
+                        </div>
+
+                        <div id="students_loading" class="text-center py-8" style="display: none;">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Chargement des étudiants...</p>
+                        </div>
+
+                        <div id="students_content" style="display: none;">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                Cochez les étudiants absents à cette séance
+                            </p>
+                            <div id="students_list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                        </div>
+                        
+                        <div id="students_empty" class="text-center py-8 text-gray-500 dark:text-gray-400" style="display: none;">
+                            <span class="material-symbols-outlined text-4xl mb-2">person_off</span>
+                            <p>Aucun étudiant inscrit dans cette classe</p>
                         </div>
                     </div>
 
@@ -172,6 +210,13 @@
             const heureDebut = document.getElementById('HeureDebut');
             const heureFin = document.getElementById('HeureFin');
             const dureeInput = document.getElementById('Duree');
+            const classeSelect = document.getElementById('CodeC');
+            const matiereSelect = document.getElementById('CodeM');
+            const studentsSection = document.getElementById('students_section');
+            const studentsLoading = document.getElementById('students_loading');
+            const studentsList = document.getElementById('students_list');
+            const studentsEmpty = document.getElementById('students_empty');
+            const nbAbsentsDisplay = document.getElementById('nb_absents_display');
 
             function calculateDuration() {
                 if (heureDebut.value && heureFin.value) {
@@ -201,6 +246,95 @@
             
             // Recalcul au chargement si valeurs présentes (valeur old())
             calculateDuration();
+
+            // Load students when both class and matiere are selected
+            function loadStudents() {
+                const classeCode = classeSelect.value;
+                const matiereCode = matiereSelect.value;
+                const placeholder = document.getElementById('students_placeholder');
+                const studentsContent = document.getElementById('students_content');
+
+                if (!classeCode || !matiereCode) {
+                    placeholder.style.display = 'block';
+                    studentsLoading.style.display = 'none';
+                    studentsContent.style.display = 'none';
+                    studentsEmpty.style.display = 'none';
+                    return;
+                }
+
+                placeholder.style.display = 'none';
+                studentsLoading.style.display = 'block';
+                studentsContent.style.display = 'none';
+                studentsEmpty.style.display = 'none';
+
+                fetch(`/api/classes/${classeCode}/etudiants`)
+                    .then(response => response.json())
+                    .then(data => {
+                        studentsLoading.style.display = 'none';
+
+                        if (data.length === 0) {
+                            studentsEmpty.style.display = 'block';
+                            return;
+                        }
+
+                        studentsList.innerHTML = '';
+                        studentsContent.style.display = 'block';
+
+                        data.forEach(student => {
+                            const div = document.createElement('div');
+                            div.className = 'flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700 transition-colors';
+                            
+                            div.innerHTML = `
+                                <input type="checkbox" 
+                                    name="absents[]" 
+                                    value="${student.CodeE}" 
+                                    id="student_${student.CodeE}"
+                                    class="student-checkbox w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary-500 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
+                                    onchange="updateAbsentsCount()">
+                                <label for="student_${student.CodeE}" class="flex-1 cursor-pointer">
+                                    <div class="flex items-center gap-3">
+                                        <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+                                            ${student.Prenom.charAt(0)}${student.Nom.charAt(0)}
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="font-medium text-gray-900 dark:text-white">
+                                                ${student.Prenom} ${student.Nom}
+                                            </div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                ${student.CodeE}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                            `;
+                            
+                            studentsList.appendChild(div);
+                        });
+
+                        updateAbsentsCount();
+                    })
+                    .catch(error => {
+                        console.error('Error loading students:', error);
+                        placeholder.style.display = 'none';
+                        studentsLoading.style.display = 'none';
+                        studentsContent.style.display = 'block';
+                        studentsList.innerHTML = '<div class="text-center text-red-500 py-4">Erreur lors du chargement des étudiants</div>';
+                    });
+            }
+
+            // Update absents count
+            window.updateAbsentsCount = function() {
+                const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
+                nbAbsentsDisplay.textContent = checkedBoxes.length;
+            };
+
+            classeSelect.addEventListener('change', loadStudents);
+            matiereSelect.addEventListener('change', loadStudents);
+
+            // Load students if class and matiere are already selected (old values)
+            if (classeSelect.value && matiereSelect.value) {
+                loadStudents();
+            }
         });
     </script>
 </x-app-layout>

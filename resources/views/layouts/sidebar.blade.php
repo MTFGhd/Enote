@@ -33,6 +33,18 @@
                 </a>
             </li>
             <li>
+                <a href="{{ route('etudiants.index') }}" class="{{ request()->routeIs('etudiants.*') ? 'active' : '' }}">
+                    <i class="bx bx-group"></i>
+                    <span>Étudiants</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('absence.index') }}" class="{{ request()->routeIs('absence.*') ? 'active' : '' }}">
+                    <i class="bx bx-calendar-x"></i>
+                    <span>Absences</span>
+                </a>
+            </li>
+            <li>
                 <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <i class="bx bx-user-plus"></i>
                     <span>Utilisateurs</span>
@@ -42,6 +54,24 @@
                 <a href="{{ route('enseignants.index') }}" class="{{ request()->routeIs('enseignants.*') ? 'active' : '' }}">
                     <i class="bx bx-id-card"></i>
                     <span>Enseignants</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('departements.index') }}" class="{{ request()->routeIs('departements.*') ? 'active' : '' }}">
+                    <i class="bx bx-building"></i>
+                    <span>Départements</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('classes.index') }}" class="{{ request()->routeIs('classes.*') ? 'active' : '' }}">
+                    <i class="bx bx-group"></i>
+                    <span>Classes</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('matieres.index') }}" class="{{ request()->routeIs('matieres.*') ? 'active' : '' }}">
+                    <i class="bx bx-book"></i>
+                    <span>Matières</span>
                 </a>
             </li>
             @else

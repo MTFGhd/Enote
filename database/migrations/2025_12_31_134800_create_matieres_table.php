@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('Matieres', function (Blueprint $table) {
             $table->string('CodeM')->primary();
+            $table->string('Libelle');
             $table->string('CodeD');
             $table->decimal('MH', 10, 2);
             $table->enum('Coef', ['1', '3', '5']);

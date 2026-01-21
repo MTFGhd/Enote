@@ -40,4 +40,12 @@ class Classes extends Model
     {
         return $this->hasMany(Avancement::class, 'CodeC', 'CodeC');
     }
+
+    /**
+     * Get the etudiants for this classe.
+     */
+    public function etudiants()
+    {
+        return $this->hasMany(Etudiants::class, 'CodeC', 'CodeC');
+    }
 }
