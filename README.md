@@ -76,7 +76,7 @@ Suivez ces étapes pour configurer le projet localement :
 
 ```bash
 
-git clone <votre-url-de-depot>
+git clone https://github.com/MTFGhd/Enote.git
 
 cd Enote
 
