@@ -18,14 +18,14 @@ Une application web complète pour la gestion pédagogique, développée avec La
 
 - **📅 Gestion des Cours** : Planification et suivi des séances de cours.
 
-- **🚫 Suivi des Absences** : Enregistrement et consultation des absences par étudiant et par cours.
+- **📋 Suivi des Absences** : Enregistrement et consultation des absences par étudiant et par cours.
 
 - **📈 Suivi de l'Avancement** : Gestion de la progression pédagogique (Cahier de texte numérique).
 
 - **📄 Rapports PDF** : Génération de fiches de séances et rapports d'avancement (pour la Direction).
 
+- **🌖 **Mode Sombre & Clair** : Interface adaptable avec support natif du dark mode et light mode pour un confort visuel optimal.
 - **🔍 Recherche Avancée** : Filtrage et recherche instantanée (côté client) pour les classes et étudiants.
-
 - **📤 Importation de Données** : Import CSV pour les données d'avancement.
 
   
@@ -76,7 +76,7 @@ Suivez ces étapes pour configurer le projet localement :
 
 ```bash
 
-git clone <votre-url-de-depot>
+git clone https://github.com/MTFGhd/Enote.git
 
 cd Enote
 
